@@ -1,7 +1,6 @@
-Lahmacun 75 20 True
-Hamburger 250 30 True
-Manti 170 45 False
-Tost 60 10 True
-Tavuk-Durum 80 15 True
-Et-Durum 160 15 False
-    
+Tost 60.00 10 True
+Tavuk-Durum 80.00 15 True
+Et-Durum 160.00 15 False
+Sucuk 20.00 10 Yok
+Malafat 500.00 30 Yok
+Merhaba 300.00 50 20
