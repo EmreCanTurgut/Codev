@@ -1,7 +1,7 @@
-Lahmacun 75 20dk True
-Hamburger 250 30dk True
-Mantı 170TL 45 False
-Tost 60 TL 10 True
-TavukDürüm 80 15 True
-EtDürüm 160 15 False
+Lahmacun 75 20 True
+Hamburger 250 30 True
+Manti 170 45 False
+Tost 60 10 True
+Tavuk-Durum 80 15 True
+Et-Durum 160 15 False
     
