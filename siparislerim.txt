@@ -1,0 +1,4 @@
+SIPARIS ID: 2
+URUN: Tavuk-Durum
+FIYAT: 80.00
+MIKTAR: 15
