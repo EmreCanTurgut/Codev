@@ -74,12 +74,14 @@ int main(int argc, char const *argv[])
         perror("Dosya açma hatası");
         return 1;
     }
+    srand(time(NULL));
 
     Siparis secilen_siparis = siparisler[secim - 1];
-    fprintf(dosya1, "SIPARIS ID: %d", secilen_siparis.id);
-    fprintf(dosya1, "URUN: %s", secilen_siparis.urun);
-    fprintf(dosya1, "FIYAT: %.2f", secilen_siparis.fiyat);
-    fprintf(dosya1, "MIKTAR: %d", secilen_siparis.miktar);
+   // fprintf(dosya1, "SIPARIS ID: %d", secilen_siparis.id);
+    fprintf(dosya1,"%d\t",rand()); // rastegele id atama
+    fprintf(dosya1, " %s\t", secilen_siparis.urun);
+    fprintf(dosya1, " %.2f\t", secilen_siparis.fiyat);
+    fprintf(dosya1, " %d\t", secilen_siparis.miktar);
     fprintf(dosya1, "\n\n");
     printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n", 
         secilen_siparis.id, 
