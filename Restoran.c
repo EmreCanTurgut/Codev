@@ -24,10 +24,53 @@ struct Siparis
     int onay; // 1: onaylandı, 0: red edildi
 };
 
+void gunlukRapor(FILE *siparisDosya)
+{
+    FILE *raporDosya;
+    char tarih[11]; // "dd-mm-yyyy\0" için 11 karakterlik alan
+    char raporDosyaAdi[50];
+
+    printf("Rapor almak istediginiz tarihi girin (dd.mm.yyyy): ");
+    scanf("%s", tarih);
+
+    // Rapor dosyasının adını oluştur
+    sprintf(raporDosyaAdi, "gunluk_rapor_%s.txt", tarih);
+
+    // Rapor dosyasını oluştur veya aç
+    raporDosya = fopen(raporDosyaAdi, "w");
+    if (raporDosya == NULL)
+    {
+        perror("Rapor dosyasi olusturulamadi");
+        return;
+    }
+
+    // Siparişler dosyasından ilgili tarihe ait siparişleri oku ve rapor dosyasına yaz
+    struct Siparis siparis;
+    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
+        sscanf(line, "%d %s %f %10[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        printf("Siparis tarihi: %s\n %s", siparis.tarih, tarih);
+        // Siparişin tarih bilgisini kontrol et
+        if (strcmp(tarih, siparis.tarih) == 0)
+        {
+            // İlgili tarih bilgisini içeren sipariş, rapor dosyasına yaz
+            fprintf(raporDosya, "%d %s %.2f %s %s %s %s %d\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay);
+        }
+    }
+
+    printf("Günlük rapor oluşturuldu: %s\n", raporDosyaAdi);
+
+    // Dosyaları kapat
+    fclose(raporDosya);
+}
+
 void gunlukRaporAl(char *tarih)
 {
     char dosyaAdi[50];
-    sprintf(dosyaAdi, "%s_siparisler.txt", tarih); // Tarihle ilişkilendirilmiş dosya adı oluştur
+    sprintf(dosyaAdi, "gunluk_rapor_%s.txt", tarih); // Tarihle ilişkilendirilmiş dosya adı oluştur
 
     FILE *dosya = fopen(dosyaAdi, "r");
     if (dosya == NULL)
@@ -186,7 +229,9 @@ int main()
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
     printf("4. Siparis Onayla\n");
-    printf("Seciminizi yapin (1/2/3/4): ");
+    printf("5. Gunluk Rapor Al\n");
+    printf("6. Gunluk Rapor Olustur\n");
+    printf("Seciminizi yapin (1/2/3/4/5/6): ");
     scanf(" %c", &secim); // Boşluk karakteri ekleyerek scanf'in tamponunu temizle
 
     switch (secim)
@@ -204,10 +249,13 @@ int main()
         siparisOnay(siparisDosya);
         break;
     case '5':
-        printf("Goruntulemek istediginiz tarihi girin (yyyy_mm_dd formatinda): ");
+        printf("Goruntulemek istediginiz tarihi girin (dd.mm.yyyy formatinda): ");
         char tarih[20];
         scanf("%s", tarih);
         gunlukRaporAl(tarih);
+        break;
+    case '6':
+        gunlukRapor(siparisDosya);
         break;
     default:
         printf("Gecersiz secim!\n");
