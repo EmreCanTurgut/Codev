@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h> // exit fonksiyonu için
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 struct Yemek
 {
@@ -7,7 +9,58 @@ struct Yemek
     float fiyat;
     int hazirlanma_suresi;
     char durum[20];
+    bool onay;
 };
+
+struct Siparis
+{
+    int id;
+    char ad[50];
+    float fiyat;
+    char tarih[20];
+    char bitisTarih[20];
+    char kullanici[50];
+    char masa[10];
+    int onay; // 1: onaylandı, 0: red edildi
+};
+
+void siparisOnay(FILE *dosya)
+{
+    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
+    int hedefId;
+    printf("Onaylanacak siparisin id'sini girin: ");
+    scanf("%d", hedefId);
+
+    // Mutfak dosyasını aç
+    FILE *mutfakDosya = fopen("mutfak.txt", "a");
+    if (mutfakDosya == NULL)
+    {
+        perror("Mutfak dosyasi acilamadi");
+        return;
+    }
+
+    // Siparişleri oku ve hedef siparişi onayla
+    struct Siparis siparis;
+    int found = 0;
+    while (fscanf(dosya, "%d %s %d %s %s %s %s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    {
+        printf("%d %s %d %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+        // if (siparis.id == hedefId && siparis.onay == 0)
+        // {
+        //     fprintf(mutfakDosya, "%d %d\n", siparis.id, siparis.ad);
+        //     printf("Siparis onaylandi ve mutfak dosyasina yazildi!\n");
+        //     found = 1;
+        // }
+    }
+
+    if (!found)
+    {
+        printf("Siparis bulunamadi.\n");
+    }
+
+    fclose(dosya);
+    fclose(mutfakDosya);
+}
 
 void yemekEkle(FILE *dosya)
 {
@@ -37,6 +90,11 @@ void yemekGuncelle(FILE *dosya)
 
     // Geçici dosya oluştur
     FILE *geciciDosya = fopen("gecici.txt", "w");
+    if (geciciDosya == NULL)
+    {
+        perror("Gecici dosya olusturulamadi");
+        return;
+    }
 
     // Yemekleri geçici dosyaya kopyala, hedef yemeği güncelle
     struct Yemek yemek;
@@ -74,6 +132,11 @@ void yemekSil(FILE *dosya)
 
     // Geçici dosya oluştur
     FILE *geciciDosya = fopen("gecici.txt", "w");
+    if (geciciDosya == NULL)
+    {
+        perror("Gecici dosya olusturulamadi");
+        return;
+    }
 
     // Yemekleri geçici dosyaya kopyala, hedef yemeği sil
     struct Yemek yemek;
@@ -98,17 +161,25 @@ void yemekSil(FILE *dosya)
 int main()
 {
     FILE *dosya = fopen("yemeklistesi.txt", "r+");
+    FILE *siparisDosya = fopen("siparisler.txt", "r+");
     if (dosya == NULL)
     {
         printf("Dosya açma hatasi!\n");
         exit(1); // Programı sonlandır
     }
 
+    if (siparisDosya == NULL)
+    {
+        printf("Siparis dosyasi acilamadi!\n");
+        exit(1);
+    }
+
     char secim;
     printf("1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
-    printf("Seciminizi yapin (1/2/3): ");
+    printf("4. Siparis Onayla\n");
+    printf("Seciminizi yapin (1/2/3/4): ");
     scanf(" %c", &secim); // Boşluk karakteri ekleyerek scanf'in tamponunu temizle
 
     switch (secim)
@@ -121,6 +192,9 @@ int main()
         break;
     case '3':
         yemekSil(dosya);
+        break;
+    case '4':
+        siparisOnay(siparisDosya);
         break;
     default:
         printf("Gecersiz secim!\n");
