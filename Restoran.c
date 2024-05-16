@@ -26,40 +26,24 @@ struct Siparis
 
 void siparisOnay(FILE *dosya)
 {
-    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
-    int hedefId;
-    printf("Onaylanacak siparisin id'sini girin: ");
-    scanf("%d", hedefId);
-
-    // Mutfak dosyasını aç
     FILE *mutfakDosya = fopen("mutfak.txt", "a");
-    if (mutfakDosya == NULL)
-    {
-        perror("Mutfak dosyasi acilamadi");
-        return;
-    }
-
-    // Siparişleri oku ve hedef siparişi onayla
+    fseek(dosya, 0, SEEK_SET);       // Dosyanın başına git
+    fseek(mutfakDosya, 0, SEEK_END); // Dosyanın sonuna git
     struct Siparis siparis;
-    int found = 0;
-    while (fscanf(dosya, "%d %s %d %s %s %s %s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
-    {
-        printf("%d %s %d %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
-        // if (siparis.id == hedefId && siparis.onay == 0)
-        // {
-        //     fprintf(mutfakDosya, "%d %d\n", siparis.id, siparis.ad);
-        //     printf("Siparis onaylandi ve mutfak dosyasina yazildi!\n");
-        //     found = 1;
-        // }
-    }
+    printf("Onaylanacak siparis numarasini giriniz:\n");
+    int siparisNo;
+    scanf("%d", &siparisNo);
 
-    if (!found)
+    while (fscanf(dosya, "%d %s %f %s %s %s %s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
     {
-        printf("Siparis bulunamadi.\n");
-    }
 
-    fclose(dosya);
-    fclose(mutfakDosya);
+        if (siparis.id == siparisNo)
+        {
+            siparis.onay = 1;
+            printf("Siparis onaylandi!\n %d", siparisNo);
+            fprintf(mutfakDosya, "%d %s %f %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+        }
+    }
 }
 
 void yemekEkle(FILE *dosya)
