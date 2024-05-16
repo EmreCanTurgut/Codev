@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    FILE *dosya1 = fopen("siparislerim.txt", "w");
+    FILE *dosya1 = fopen("siparislerim.txt", "a");
     if (dosya1 == NULL)
     {
         perror("Dosya açma hatası");

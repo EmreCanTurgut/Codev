@@ -24,6 +24,29 @@ struct Siparis
     int onay; // 1: onaylandı, 0: red edildi
 };
 
+void gunlukRaporAl(char *tarih)
+{
+    char dosyaAdi[50];
+    sprintf(dosyaAdi, "%s_siparisler.txt", tarih); // Tarihle ilişkilendirilmiş dosya adı oluştur
+
+    FILE *dosya = fopen(dosyaAdi, "r");
+    if (dosya == NULL)
+    {
+        printf("Gunluk rapor bulunamadi!\n");
+        return;
+    }
+
+    struct Siparis siparis;
+    printf("Tarih: %s\n", tarih);
+    printf("Siparisler:\n");
+    while (fscanf(dosya, "%d %s %f %s %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay) != EOF)
+    {
+        printf("ID: %d, Ad: %s, Fiyat: %.2f, Tarih: %s, Bitis Tarihi: %s, Kullanici: %s, Masa: %s, Onay: %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay ? "Onaylandi" : "Red Edildi");
+    }
+
+    fclose(dosya);
+}
+
 void siparisOnay(FILE *dosya)
 {
     FILE *mutfakDosya = fopen("mutfak.txt", "a");
@@ -179,6 +202,12 @@ int main()
         break;
     case '4':
         siparisOnay(siparisDosya);
+        break;
+    case '5':
+        printf("Goruntulemek istediginiz tarihi girin (yyyy_mm_dd formatinda): ");
+        char tarih[20];
+        scanf("%s", tarih);
+        gunlukRaporAl(tarih);
         break;
     default:
         printf("Gecersiz secim!\n");
