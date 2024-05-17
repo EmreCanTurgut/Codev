@@ -2,36 +2,43 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main() {
+int main()
+{
     FILE *dosya = fopen("Mutfak.txt", "r");
 
-    if (dosya == NULL) {
+    if (dosya == NULL)
+    {
         printf("Dosya açma hatası!\n");
         return 1;
     }
 
     char siparis[20]; // Siparişi tutmak için bir karakter dizisi
-    char tarih[20]; // Tarihi tutmak için bir karakter dizisi
-    char saat_str[20]; // Saati tutmak için bir karakter dizisi
+    char tarih[20];   // Tarihi tutmak için bir karakter dizisi
+    float saat;       // Saati tutmak için bir float
+    char line[100];   // Dosyadan okunan satırı tutmak için bir karakter dizisi
 
-    fscanf(dosya, "%s %s %s", siparis, tarih, saat_str); // Dosyadan siparişi, tarihi ve saati oku
+    // Dosyadan satırı oku
+    fgets(line, sizeof(line), dosya);
+
+    // Okunan satırdan siparişi, tarihi ve saati ayır
+    sscanf(line, "%s %s %f", siparis, tarih, &saat);
+
     fclose(dosya); // Dosyayı kapat
 
-    int saat, dakika;
-    sscanf(saat_str, "%d.%d", &saat, &dakika); // Saati ve dakikayı al
+    // Saati ve dakikayı ayrı değişkenlerde sakla
+    int saat_int = (int)saat;
+    int dakika = (int)((saat - saat_int) * 100);
 
     // Siparişe göre süre ekle
-    if (strcmp(siparis, "hamburger") == 0) {
+    if (strcmp(siparis, "hamburger") == 0)
+    {
         dakika += 40;
     }
 
     // Dakikaya göre saati güncelle
-    if (dakika >= 60) {
-        saat += dakika / 60;
-        dakika %= 60;
-    }
+    saat_int += dakika / 60;
+    dakika %= 60;
 
-    printf("Yeni saat: %s - %02d.%02d\n", tarih, saat, dakika);
-getchar();
+    printf("Yeni saat: %s - %02d.%02d\n", tarih, saat_int, dakika);
     return 0;
 }
