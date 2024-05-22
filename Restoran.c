@@ -90,26 +90,64 @@ void gunlukRaporAl(char *tarih)
     fclose(dosya);
 }
 
+int siparisOnaylanmisMi(FILE *mutfakDosya, int siparisNo)
+{
+    struct Siparis siparis;
+    fseek(mutfakDosya, 0, SEEK_SET); // Dosyanın başına git
+
+    while (fscanf(mutfakDosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    {
+        if (siparis.id == siparisNo)
+        {
+            return 1; // Sipariş zaten onaylanmış
+        }
+    }
+    return 0; // Sipariş onaylanmamış
+}
+
 void siparisOnay(FILE *dosya)
 {
-    FILE *mutfakDosya = fopen("mutfak.txt", "a");
-    fseek(dosya, 0, SEEK_SET);       // Dosyanın başına git
-    fseek(mutfakDosya, 0, SEEK_END); // Dosyanın sonuna git
+    FILE *mutfakDosya = fopen("mutfak.txt", "a+"); // "a+" modunu kullanarak dosyayı hem okuyabilir hem yazabiliriz
+    if (mutfakDosya == NULL)
+    {
+        perror("mutfak.txt dosyası açılamadı");
+        return;
+    }
+
+    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
     struct Siparis siparis;
     printf("Onaylanacak siparis numarasini giriniz:\n");
     int siparisNo;
     scanf("%d", &siparisNo);
 
-    while (fscanf(dosya, "%d %s %f %s %s %s %s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    if (siparisOnaylanmisMi(mutfakDosya, siparisNo))
     {
+        printf("Bu siparis zaten onaylanmis.\n");
+        fclose(mutfakDosya);
+        return;
+    }
 
+    int siparisBulundu = 0; // Sipariş bulunduğunda döngüden çıkmak için
+
+    while (fscanf(dosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    {
         if (siparis.id == siparisNo)
         {
             siparis.onay = 1;
-            printf("Siparis onaylandi!\n %d", siparisNo);
-            fprintf(mutfakDosya, "%d %s %f %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+            printf("Siparis onaylandi! Siparis No: %d\n", siparisNo);
+            fseek(mutfakDosya, 0, SEEK_END); // Dosyanın sonuna git
+            fprintf(mutfakDosya, "%d %s %.6f %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+            siparisBulundu = 1;
+            break; // Sipariş bulundu ve onaylandı, döngüden çık
         }
     }
+
+    if (!siparisBulundu)
+    {
+        printf("Siparis bulunamadi! Siparis No: %d\n", siparisNo);
+    }
+
+    fclose(mutfakDosya);
 }
 
 void yemekEkle(FILE *dosya)
@@ -229,10 +267,10 @@ int main()
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
     printf("4. Siparis Onayla\n");
-    printf("5. Gunluk Rapor Al\n");
-    printf("6. Gunluk Rapor Olustur\n");
+    printf("5. Gunluk Rapor Olustur\n");
+    printf("6. Gunluk Rapor Oku\n");
     printf("Seciminizi yapin (1/2/3/4/5/6): ");
-    scanf(" %c", &secim); // Boşluk karakteri ekleyerek scanf'in tamponunu temizle
+    scanf(" %c", &secim);
 
     switch (secim)
     {
@@ -249,13 +287,13 @@ int main()
         siparisOnay(siparisDosya);
         break;
     case '5':
+        gunlukRapor(siparisDosya);
+        break;
+    case '6':
         printf("Goruntulemek istediginiz tarihi girin (dd.mm.yyyy formatinda): ");
         char tarih[20];
         scanf("%s", tarih);
         gunlukRaporAl(tarih);
-        break;
-    case '6':
-        gunlukRapor(siparisDosya);
         break;
     default:
         printf("Gecersiz secim!\n");
