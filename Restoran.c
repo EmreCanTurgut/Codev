@@ -67,6 +67,64 @@ void gunlukRapor(FILE *siparisDosya)
     fclose(raporDosya);
 }
 
+void gunlukKazanc(FILE *siparisDosya)
+{
+    float toplamKazanc = 0.0;
+    char tarih[11]; // "dd.mm.yyyy\0" için 11 karakterlik alan
+
+    printf("Kazancini ogrenmek istediginiz tarihi girin (dd.mm.yyyy): ");
+    scanf("%10s", tarih);
+
+    // Siparişler dosyasından ilgili tarihe ait siparişleri oku ve kazancı hesapla
+    struct Siparis siparis;
+    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
+        sscanf(line, "%d %49s %f %19s %19s %49s %9s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Siparişin tarih bilgisini kontrol et
+        if (strncmp(tarih, siparis.tarih, 10) == 0)
+        {
+            // İlgili tarih bilgisini içeren siparişin fiyatını toplam kazanca ekle
+            toplamKazanc += siparis.fiyat;
+        }
+    }
+
+    printf("Gunluk Kazanc: %.2f TL\n", toplamKazanc);
+}
+
+void aylikKazanc(FILE *siparisDosya)
+{
+    char ay[3], yil[5]; // Ay için 2 karakter, yıl için 4 karakter
+    printf("Kazancini gormek istediginiz ayi girin (mm-yyyy formatinda): ");
+    scanf("%2s-%4s", ay, yil); // Ay ve yıl olarak ayrılmış olarak oku
+
+    struct Siparis siparis;
+    float toplamKazanc = 0.0;
+
+    // Dosyanın başına git
+    fseek(siparisDosya, 0, SEEK_SET);
+
+    while (fscanf(siparisDosya, "%d %s %f %s %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay) != EOF)
+    {
+        int siparisAy, siparisYil;
+        // Tarihi ay ve yıl olarak ayır
+        sscanf(siparis.tarih, "%*d.%2d.%*d", &siparisAy);
+        sscanf(siparis.tarih, "%*d.%*d.%4d", &siparisYil);
+        // Ay ve yıl eşleşiyorsa, toplam kazanca ekle
+        printf("%d %d", siparisAy, siparisYil);
+        printf("%d %d", atoi(ay), atoi(yil));
+
+        if (siparisAy == atoi(ay) && siparisYil == atoi(yil))
+        {
+            toplamKazanc += siparis.fiyat;
+        }
+    }
+
+    printf("Belirtilen aydaki toplam kazanc: %.2f\n", toplamKazanc);
+}
+
 void gunlukRaporAl(char *tarih)
 {
     char dosyaAdi[50];
@@ -261,7 +319,7 @@ int main()
         printf("Siparis dosyasi acilamadi!\n");
         exit(1);
     }
-
+    char kazancSecim;
     char secim;
     printf("1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
@@ -269,7 +327,8 @@ int main()
     printf("4. Siparis Onayla\n");
     printf("5. Gunluk Rapor Olustur\n");
     printf("6. Gunluk Rapor Oku\n");
-    printf("Seciminizi yapin (1/2/3/4/5/6): ");
+    printf("7. Analizler Bolumu \n");
+    printf("Seciminizi yapin (1/2/3/4/5/6/7): ");
     scanf(" %c", &secim);
 
     switch (secim)
@@ -295,11 +354,31 @@ int main()
         scanf("%s", tarih);
         gunlukRaporAl(tarih);
         break;
+    case '7':
+        printf("\033[2J\033[H");
+        printf("1. Gunluk Kazanc \n");
+        printf("2. Aylik Kazanc \n");
+        printf("3. Donemsel Kazanc \n");
+        printf("Seciminizi Yapin (1/2/3) \n");
+        scanf(" %c", &kazancSecim);
+        switch (kazancSecim)
+        {
+        case '1':
+            gunlukKazanc(siparisDosya);
+            break;
+        case '2':
+            aylikKazanc(siparisDosya);
+            break;
+        default:
+            printf("Geçersiz Seçim");
+            break;
+        }
     default:
         printf("Gecersiz secim!\n");
         break;
     }
 
     fclose(dosya);
+    getchar();
     return 0;
 }

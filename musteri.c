@@ -115,9 +115,12 @@ int main(int argc, char const *argv[])
     float fiyat;
     int miktar;
 
-    while (fscanf(dosya, "%d %s %s %f %d", &id, &sip_kullanici, urun, &fiyat, &miktar) != EOF)
+    while (fscanf(dosya, "%d %49s %49s %f %d", &id, sip_kullanici, urun, &fiyat, &miktar) != EOF)
     {
-        printf("%d %s %s %f %d", &id, &sip_kullanici, urun, &fiyat, &miktar);
+        if (strcmp(kullanici, sip_kullanici) == 0)
+        {
+            printf("%d %s %s %.2f %d\n", id, sip_kullanici, urun, fiyat, miktar);
+        }
     }
 
     fclose(dosya2);

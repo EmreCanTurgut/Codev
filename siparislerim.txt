@@ -1,1 +1,4 @@
 31159	m	Tavuk-Durum	80.00	15
+31587	murat	Tavuk-Durum	80.00	15
+
+32361	murat	Malafat	500.00	30
