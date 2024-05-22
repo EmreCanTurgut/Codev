@@ -96,33 +96,35 @@ void gunlukKazanc(FILE *siparisDosya)
 
 void aylikKazanc(FILE *siparisDosya)
 {
-    char ay[3], yil[5]; // Ay için 2 karakter, yıl için 4 karakter
-    printf("Kazancini gormek istediginiz ayi girin (mm-yyyy formatinda): ");
-    scanf("%2s-%4s", ay, yil); // Ay ve yıl olarak ayrılmış olarak oku
+    char restoranYil[8]; // Ay için 2 karakter, yıl için 4 karakter
+    printf("Kazancini gormek istediginiz ayi girin (mm.yyyy formatinda): ");
+    scanf("%s", restoranYil); // Ay ve yıl olarak ayrılmış olarak oku
 
     struct Siparis siparis;
     float toplamKazanc = 0.0;
+    char buffer[256];
 
     // Dosyanın başına git
     fseek(siparisDosya, 0, SEEK_SET);
 
-    while (fscanf(siparisDosya, "%d %s %f %s %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay) != EOF)
+    while (fgets(buffer, sizeof(buffer), siparisDosya))
     {
-        int siparisAy, siparisYil;
-        // Tarihi ay ve yıl olarak ayır
-        sscanf(siparis.tarih, "%*d.%2d.%*d", &siparisAy);
-        sscanf(siparis.tarih, "%*d.%*d.%4d", &siparisYil);
-        // Ay ve yıl eşleşiyorsa, toplam kazanca ekle
-        printf("%d %d", siparisAy, siparisYil);
-        printf("%d %d", atoi(ay), atoi(yil));
+        // Satırı ayrıştır
+        int fieldCount = sscanf(buffer, "%d %49s %f %10s %19s %49s %9s",
+                                &siparis.id, siparis.ad, &siparis.fiyat,
+                                siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+        char ayYil[8];
+        strncpy(ayYil, siparis.tarih + 3, 7);
+        ayYil[7] = '\0';
 
-        if (siparisAy == atoi(ay) && siparisYil == atoi(yil))
+        if (strcmp(ayYil, restoranYil) == 0)
         {
+            printf("%s\n", ayYil); // Sadece test amaçlı, belirtilen ay ve yılın doğru şekilde alındığını gösterir
             toplamKazanc += siparis.fiyat;
         }
     }
 
-    printf("Belirtilen aydaki toplam kazanc: %.2f\n", toplamKazanc);
+    printf("Belirtilen aydaki toplam kazanc: %.2f TL\n", toplamKazanc);
 }
 
 void gunlukRaporAl(char *tarih)
