@@ -215,7 +215,7 @@ int main()
     if (dosya == NULL)
     {
         printf("Dosya açma hatasi!\n");
-        exit(1); // Programı sonlandır
+        exit(1);
     }
 
     if (siparisDosya == NULL)
