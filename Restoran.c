@@ -127,6 +127,38 @@ void aylikKazanc(FILE *siparisDosya)
     printf("Belirtilen aydaki toplam kazanc: %.2f TL\n", toplamKazanc);
 }
 
+void donemselKazanc(FILE *siparisDosya)
+{
+    char baslangicTarih[11]; // "dd.mm.yyyy\0" için 11 karakterlik alan
+    char bitisTarih[11];     // "dd.mm.yyyy\0" için 11 karakterlik alan
+
+    printf("Baslangic tarihini girin (dd.mm.yyyy): ");
+    scanf("%s", baslangicTarih);
+    printf("Bitis tarihini girin (dd.mm.yyyy): ");
+    scanf("%s", bitisTarih);
+
+    struct Siparis siparis;
+    float toplamKazanc = 0.0;
+    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
+
+    // Siparişler dosyasından belirtilen tarih aralığındaki siparişleri oku ve kazancı hesapla
+    fseek(siparisDosya, 0, SEEK_SET);
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
+        sscanf(line, "%d %49s %f %19s %19s %49s %9s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Siparişin tarih bilgisini kontrol et
+        if (strcmp(siparis.tarih, baslangicTarih) >= 0 && strcmp(siparis.tarih, bitisTarih) <= 0)
+        {
+            // İlgili tarih aralığındaki siparişin fiyatını toplam kazanca ekle
+            toplamKazanc += siparis.fiyat;
+        }
+    }
+
+    printf("Belirtilen donemdeki toplam kazanc: %.2f TL\n", toplamKazanc);
+}
+
 void gunlukRaporAl(char *tarih)
 {
     char dosyaAdi[50];
@@ -370,6 +402,9 @@ int main()
             break;
         case '2':
             aylikKazanc(siparisDosya);
+            break;
+        case '3':
+            donemselKazanc(siparisDosya);
             break;
         default:
             printf("Geçersiz Seçim");
