@@ -1,17 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 // Sipariş yapısı
-typedef struct {
+typedef struct
+{
     int id;
     char urun[50];
     float fiyat;
     int miktar;
+    char kullanici[50];
 } Siparis;
 
 int main(int argc, char const *argv[])
 {
+    char kullanici[50];
+    printf("Kullanici isminizi girin: ");
+    scanf("%s", kullanici);
+
     FILE *dosya = fopen("yemeklistesi.txt", "r");
     if (dosya == NULL)
     {
@@ -43,12 +50,13 @@ int main(int argc, char const *argv[])
                 strcpy(siparisler[yemek_sayisi].urun, urun);
                 siparisler[yemek_sayisi].fiyat = fiyat;
                 siparisler[yemek_sayisi].miktar = miktar;
+                strcpy(siparisler[yemek_sayisi].kullanici, kullanici);
 
-                printf("%2d %5s %10.2f %15d\n", 
-                    siparisler[yemek_sayisi].id, 
-                    siparisler[yemek_sayisi].urun, 
-                    siparisler[yemek_sayisi].fiyat, 
-                    siparisler[yemek_sayisi].miktar);
+                printf("%2d %5s %10.2f %15d\n",
+                       siparisler[yemek_sayisi].id,
+                       siparisler[yemek_sayisi].urun,
+                       siparisler[yemek_sayisi].fiyat,
+                       siparisler[yemek_sayisi].miktar);
 
                 yemek_sayisi++;
             }
@@ -74,21 +82,45 @@ int main(int argc, char const *argv[])
         perror("Dosya açma hatası");
         return 1;
     }
-    srand(time(NULL));
 
+    srand(time(NULL));
     Siparis secilen_siparis = siparisler[secim - 1];
-   // fprintf(dosya1, "SIPARIS ID: %d", secilen_siparis.id);
-    fprintf(dosya1,"%d\t",rand()); // rastegele id atama
-    fprintf(dosya1, " %s\t", secilen_siparis.urun);
-    fprintf(dosya1, " %.2f\t", secilen_siparis.fiyat);
-    fprintf(dosya1, " %d\t", secilen_siparis.miktar);
-    fprintf(dosya1, "\n\n");
-    printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n", 
-        secilen_siparis.id, 
-        secilen_siparis.urun);
+    fprintf(dosya1, "%d\t%s\t%s\t%.2f\t%d\n",
+            rand(),
+            secilen_siparis.kullanici,
+            secilen_siparis.urun,
+            secilen_siparis.fiyat,
+            secilen_siparis.miktar);
+
+    printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n",
+           secilen_siparis.id,
+           secilen_siparis.urun);
 
     fclose(dosya1);
 
-    getchar(); // Programın sonlanmasını geciktirmek için
+    // Kullanıcıya ait siparişleri göster
+    FILE *dosya2 = fopen("siparislerim.txt", "r");
+    if (dosya2 == NULL)
+    {
+        perror("Dosya açma hatası");
+        return 1;
+    }
+
+    printf("\n%s kullanicisina ait siparisler:\n", kullanici);
+    printf("ID   YEMEK   FIYAT   MIKTAR\n");
+
+    int id;
+    char sip_kullanici[50];
+    char urun[50];
+    float fiyat;
+    int miktar;
+
+    while (fscanf(dosya, "%d %s %s %f %d", &id, &sip_kullanici, urun, &fiyat, &miktar) != EOF)
+    {
+        printf("%d %s %s %f %d", &id, &sip_kullanici, urun, &fiyat, &miktar);
+    }
+
+    fclose(dosya2);
+    getchar();
     return 0;
 }
