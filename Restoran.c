@@ -522,33 +522,20 @@ void yemekSil(FILE *dosya)
     printf("Yemek silindi!\n");
 }
 
-int main()
+void anaMenu(FILE *dosya, FILE *siparisDosya)
 {
-    FILE *dosya = fopen("yemeklistesi.txt", "r+");
-    FILE *siparisDosya = fopen("siparisler.txt", "r+");
-    if (dosya == NULL)
-    {
-        printf("Dosya açma hatasi!\n");
-        exit(1);
-    }
-
-    if (siparisDosya == NULL)
-    {
-        printf("Siparis dosyasi acilamadi!\n");
-        exit(1);
-    }
-    char kazancSecim;
-    char istatistikSecim;
     char secim;
-    printf("1. Yemek Ekle\n");
+
+    printf("\n1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
     printf("4. Siparis Onayla\n");
     printf("5. Gunluk Rapor Olustur\n");
     printf("6. Gunluk Rapor Oku\n");
-    printf("7. Analizler Bolumu \n");
+    printf("7. Analizler Bolumu\n");
     printf("8. Istatistikler\n");
-    printf("Seciminizi yapin (1/2/3/4/5/6/7/8): ");
+    printf("9. Cikis\n");
+    printf("Seciminizi yapin (1/2/3/4/5/6/7/8/9): ");
     scanf(" %c", &secim);
 
     switch (secim)
@@ -580,6 +567,7 @@ int main()
         printf("2. Aylik Kazanc \n");
         printf("3. Donemsel Kazanc \n");
         printf("Seciminizi Yapin (1/2/3) \n");
+        char kazancSecim;
         scanf(" %c", &kazancSecim);
         switch (kazancSecim)
         {
@@ -593,14 +581,17 @@ int main()
             donemselKazanc(siparisDosya);
             break;
         default:
-            printf("Gecersiz Seçim");
+            printf("Gecersiz Seçim\n");
             break;
         }
+        break;
     case '8':
         printf("\033[2J\033[H");
         printf("1) En Cok Tuketilen Yemek \n");
         printf("2) En Kazancli Gun\n");
         printf("3) En Cok Siparis Veren Kullanici\n");
+        printf("Seciminizi Yapin (1/2/3) \n");
+        char istatistikSecim;
         scanf(" %c", &istatistikSecim);
         switch (istatistikSecim)
         {
@@ -614,15 +605,40 @@ int main()
             enCokSiparisVerenKullanici(siparisDosya);
             break;
         default:
-            printf("Gecersiz Secim");
+            printf("Gecersiz Secim\n");
             break;
         }
+        break;
+    case '9':
+        printf("Uygulama kapatiliyor...\n");
+        fclose(dosya);
+        fclose(siparisDosya);
+        exit(EXIT_SUCCESS);
     default:
         printf("Gecersiz secim!\n");
         break;
     }
+}
+
+int main()
+{
+    FILE *dosya = fopen("yemeklistesi.txt", "r+");
+    FILE *siparisDosya = fopen("siparisler.txt", "r+");
+    if (dosya == NULL || siparisDosya == NULL)
+    {
+        printf("Dosya acma hatasi!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char devam;
+    do
+    {
+        anaMenu(dosya, siparisDosya);
+        printf("\nAna menuye donmek icin bir tusa basiniz (q cikis yapar): ");
+        scanf(" %c", &devam);
+    } while (devam != 'q' && devam != 'Q');
 
     fclose(dosya);
-    getchar();
+    fclose(siparisDosya);
     return 0;
 }
