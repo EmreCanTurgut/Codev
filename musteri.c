@@ -3,90 +3,146 @@
 #include <stdlib.h>
 #include <time.h>
 
+// Maksimum yemek sayısı ve maksimum string uzunluğu sabitleri
+#define MAX_YEMEK 10
+#define MAX_STR 50
+
 // Sipariş yapısı
 typedef struct
 {
-    int id;
-    char urun[50];
-    float fiyat;
-    int miktar;
-    char kullanici[50];
+    int id;                // Sipariş ID'si
+    char urun[MAX_STR];    // Ürün adı
+    float fiyat;           // Ürün fiyatı
+    int miktar;            // Ürün miktarı
+    char kullanici[MAX_STR]; // Kullanıcı adı
 } Siparis;
 
-int main(int argc, char const *argv[])
-{
-    char kullanici[50];
-    printf("Kullanici isminizi girin: ");
-    scanf("%s", kullanici);
+int yemekListesiniYazdirVeSiparisleriOku(FILE *dosya, Siparis siparisler[MAX_YEMEK], char kullanici[MAX_STR]);
+int kullaniciSecimYap(int yemek_sayisi);
+void kullaniciSiparisleriniGoster(FILE *dosya, const char kullanici[MAX_STR]);
+void siparisKaydet(FILE *dosya, Siparis secilen_siparis);
 
-    FILE *dosya = fopen("yemeklistesi.txt", "r");
-    if (dosya == NULL)
-    {
+
+
+
+FILE* dosyaAc(const char *dosyaAdi, const char *mod) {
+    FILE *dosya = fopen(dosyaAdi, mod);
+    if (dosya == NULL) {
         perror("Dosya açma hatası");
-        return 1;
+        exit(1); // programı kapatır
     }
+    return dosya;
+}
 
+
+
+int main(int argc, char const *argv[]) {
+    
+    char kullanici[MAX_STR];
+     printf("Kullanici isminizi girin: ");
+     scanf("%s", kullanici);
+
+    FILE *dosya = dosyaAc("yemeklistesi.txt", "r"); // Yemek listesi dosyasını aç
+    
+    
+    Siparis siparisler[MAX_YEMEK];
+    
+    int yemek_sayisi = yemekListesiniYazdirVeSiparisleriOku(dosya, siparisler, kullanici); 
+    fclose(dosya); // Dosyayı kapat
+
+    int secim = kullaniciSecimYap(yemek_sayisi); 
+
+    FILE *dosya1 = dosyaAc("siparislerim.txt", "a"); // Sipariş dosyasını aç
+    Siparis secilen_siparis = siparisler[secim - 1]; // Seçilen siparişi al
+    siparisKaydet(dosya1, secilen_siparis); 
+    fclose(dosya1); 
+
+    FILE *dosya2 = dosyaAc("siparislerim.txt", "r"); 
+    kullaniciSiparisleriniGoster(dosya2, kullanici); 
+    fclose(dosya2); 
+
+    
+    return 0;
+}
+
+// Yemek listesini yazdıran ve siparişleri okuyan fonksiyon
+int yemekListesiniYazdirVeSiparisleriOku(FILE *dosya, Siparis siparisler[MAX_YEMEK], char kullanici[MAX_STR]) {
     printf("ID   YEMEK  FIYAT       SURE\n");
 
-    char satir[256];
-    Siparis siparisler[10];
+    char urun[MAX_STR];
+    float fiyat;
+    int miktar;
+    char mevcut[10];
     int yemek_sayisi = 0;
 
-    while (fgets(satir, sizeof(satir), dosya))
-    {
-        char urun[50];
-        float fiyat;
-        int miktar;
-        char mevcut[10];
+    // Dosyadan satır satır okuma işlemi
+    while (fscanf(dosya, "%s %f %d %s", urun, &fiyat, &miktar, mevcut) == 4 && yemek_sayisi < MAX_YEMEK) {
+        // "Mevcut" alanı "True" ise kontrol et
+        if (strcmp(mevcut, "True") == 0) {
+            // Sipariş yapısını doldur
+            siparisler[yemek_sayisi].id = yemek_sayisi + 1;
+            strcpy(siparisler[yemek_sayisi].urun, urun); 
+            siparisler[yemek_sayisi].fiyat = fiyat;
+            siparisler[yemek_sayisi].miktar = miktar;
+            strcpy(siparisler[yemek_sayisi].kullanici, kullanici);
 
-        // Satırı ayrıştır
-        if (sscanf(satir, "%s %f %d %s", urun, &fiyat, &miktar, mevcut) == 4)
-        {
-            // Mevcut alanı "True" ise kontrol et
-            if (strcmp(mevcut, "True") == 0)
-            {
-                // Mevcut "True" ise satırı yazdır ve sipariş yapısına ekle
-                siparisler[yemek_sayisi].id = yemek_sayisi + 1;
-                strcpy(siparisler[yemek_sayisi].urun, urun);
-                siparisler[yemek_sayisi].fiyat = fiyat;
-                siparisler[yemek_sayisi].miktar = miktar;
-                strcpy(siparisler[yemek_sayisi].kullanici, kullanici);
+            // Ekrana yazdır
+            printf("%2d %5s %10.2f %15d\n",
+                   siparisler[yemek_sayisi].id,
+                   siparisler[yemek_sayisi].urun,
+                   siparisler[yemek_sayisi].fiyat,
+                   siparisler[yemek_sayisi].miktar);
 
-                printf("%2d %5s %10.2f %15d\n",
-                       siparisler[yemek_sayisi].id,
-                       siparisler[yemek_sayisi].urun,
-                       siparisler[yemek_sayisi].fiyat,
-                       siparisler[yemek_sayisi].miktar);
-
-                yemek_sayisi++;
-            }
+            yemek_sayisi++;
         }
     }
 
-    fclose(dosya);
+    return yemek_sayisi;
+}
 
-    // Kullanıcının yemek seçimi
+// Kullanıcının yemek seçimini alan fonksiyon
+int kullaniciSecimYap(int yemek_sayisi) {
     printf("Siparisinizi yapin (1-%d): ", yemek_sayisi);
     int secim;
     scanf("%d", &secim);
 
-    if (secim < 1 || secim > yemek_sayisi)
-    {
+    // Geçersiz seçim kontrolü
+    if (secim < 1 || secim > yemek_sayisi) {
         printf("Gecersiz secim!\n");
-        return 1;
+        exit(1); // programı sonlandırır
     }
 
-    FILE *dosya1 = fopen("siparislerim.txt", "a");
-    if (dosya1 == NULL)
-    {
-        perror("Dosya açma hatası");
-        return 1;
-    }
+    return secim;
+}
 
-    srand(time(NULL));
-    Siparis secilen_siparis = siparisler[secim - 1];
-    fprintf(dosya1, "%d\t%s\t%s\t%.2f\t%d\n",
-            rand(),
+// Kullanıcıya ait siparişleri gösteren fonksiyon
+void kullaniciSiparisleriniGoster(FILE *dosya, const char kullanici[MAX_STR]) {
+    printf("\n%s kullanicisina ait siparisler:\n", kullanici);
+    printf("ID  KISI   YEMEK   FIYAT   SURE\n");
+
+    int id;
+    char sip_kullanici[MAX_STR];
+    char urun[MAX_STR];
+    float fiyat;
+    int miktar;
+
+    // Dosyadan satır satır okuma işlemi
+    while (fscanf(dosya, "%d %49s %49s %f %d", &id, sip_kullanici, urun, &fiyat, &miktar) != EOF) {
+        // Kullanıcı adı kontrolü
+        if (strcmp(kullanici, sip_kullanici) == 0) {
+            // Ekrana yazdırma işlemi
+            printf("%d %s %s %.2f %d\n", id, sip_kullanici, urun, fiyat, miktar);
+        }
+    }
+}
+
+
+
+// Siparişi dosyaya kaydeden fonksiyon
+void siparisKaydet(FILE *dosya, Siparis secilen_siparis) {
+    srand(time(NULL)); // Rastgele sayı üreteci için tohum
+    fprintf(dosya, "%d\t%s\t%s\t%.2f\t%d\n",
+            rand(), // Rastgele bir ID oluşturur
             secilen_siparis.kullanici,
             secilen_siparis.urun,
             secilen_siparis.fiyat,
@@ -95,35 +151,4 @@ int main(int argc, char const *argv[])
     printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n",
            secilen_siparis.id,
            secilen_siparis.urun);
-
-    fclose(dosya1);
-
-    // Kullanıcıya ait siparişleri göster
-    FILE *dosya2 = fopen("siparislerim.txt", "r");
-    if (dosya2 == NULL)
-    {
-        perror("Dosya açma hatası");
-        return 1;
-    }
-
-    printf("\n%s kullanicisina ait siparisler:\n", kullanici);
-    printf("ID   YEMEK   FIYAT   MIKTAR\n");
-
-    int id;
-    char sip_kullanici[50];
-    char urun[50];
-    float fiyat;
-    int miktar;
-
-    while (fscanf(dosya, "%d %49s %49s %f %d", &id, sip_kullanici, urun, &fiyat, &miktar) != EOF)
-    {
-        if (strcmp(kullanici, sip_kullanici) == 0)
-        {
-            printf("%d %s %s %.2f %d\n", id, sip_kullanici, urun, fiyat, miktar);
-        }
-    }
-
-    fclose(dosya2);
-    getchar();
-    return 0;
 }

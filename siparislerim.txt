@@ -4,3 +4,5 @@
 32361	murat	Malafat	500.00	30
 5200	murat	Tavuk-Durum	80.00	15
 5249	m	Malafat	500.00	30
+15605	t	Tavuk-Durum	80.00	15
+15699	k	Merhaba	300.00	50

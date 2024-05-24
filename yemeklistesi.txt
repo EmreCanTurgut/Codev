@@ -1,6 +1,6 @@
 Tost 60.00 10 True
 Tavuk-Durum 80.00 15 True
 Et-Durum 160.00 15 False
-Sucuk 20.00 10 Yok
+Sucuk 20.00 10 False
 Malafat 500.00 30 True
 Merhaba 300.00 50 True
