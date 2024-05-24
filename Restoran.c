@@ -24,6 +24,56 @@ struct Siparis
     int onay; // 1: onaylandı, 0: red edildi
 };
 
+void enCokTuketilenYemek(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char yemekAdlari[100][50];    // Maksimum 100 farklı yemek adı varsayıyoruz
+    int yemekAdetleri[100] = {0}; // Bu yemeklerin adetlerini saklayacak dizi
+    int yemekSayisi = 0;          // Farklı yemek sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Yemek adını yemekAdlari dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < yemekSayisi; i++)
+        {
+            if (strcmp(yemekAdlari[i], siparis.ad) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer yemek adı bulunduysa, adetini bir artır
+            yemekAdetleri[found]++;
+        }
+        else
+        {
+            // Eğer yemek adı bulunmadıysa, yeni bir yemek ekle
+            strcpy(yemekAdlari[yemekSayisi], siparis.ad);
+            yemekAdetleri[yemekSayisi] = 1;
+            yemekSayisi++;
+        }
+    }
+
+    // En çok tüketilen yemeği bul
+    int maxIndex = 0;
+    for (int i = 1; i < yemekSayisi; i++)
+    {
+        if (yemekAdetleri[i] > yemekAdetleri[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Cok Tuketilen Yemek: %s, Tuketim Miktari: %d\n", yemekAdlari[maxIndex], yemekAdetleri[maxIndex]);
+}
+
 void gunlukRapor(FILE *siparisDosya)
 {
     FILE *raporDosya;
@@ -44,19 +94,14 @@ void gunlukRapor(FILE *siparisDosya)
         return;
     }
 
-    // Siparişler dosyasından ilgili tarihe ait siparişleri oku ve rapor dosyasına yaz
     struct Siparis siparis;
-    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
+    char line[256];
     while (fgets(line, sizeof(line), siparisDosya) != NULL)
     {
-        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
         sscanf(line, "%d %s %f %10[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
 
-        printf("Siparis tarihi: %s\n %s", siparis.tarih, tarih);
-        // Siparişin tarih bilgisini kontrol et
         if (strcmp(tarih, siparis.tarih) == 0)
         {
-            // İlgili tarih bilgisini içeren sipariş, rapor dosyasına yaz
             fprintf(raporDosya, "%d %s %.2f %s %s %s %s %d\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay);
         }
     }
@@ -70,12 +115,11 @@ void gunlukRapor(FILE *siparisDosya)
 void gunlukKazanc(FILE *siparisDosya)
 {
     float toplamKazanc = 0.0;
-    char tarih[11]; // "dd.mm.yyyy\0" için 11 karakterlik alan
+    char tarih[11];
 
     printf("Kazancini ogrenmek istediginiz tarihi girin (dd.mm.yyyy): ");
     scanf("%10s", tarih);
 
-    // Siparişler dosyasından ilgili tarihe ait siparişleri oku ve kazancı hesapla
     struct Siparis siparis;
     char line[256]; // Satırı okumak için kullanılacak karakter dizisi
     while (fgets(line, sizeof(line), siparisDosya) != NULL)
@@ -354,6 +398,7 @@ int main()
         exit(1);
     }
     char kazancSecim;
+    char istatistikSecim;
     char secim;
     printf("1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
@@ -362,7 +407,8 @@ int main()
     printf("5. Gunluk Rapor Olustur\n");
     printf("6. Gunluk Rapor Oku\n");
     printf("7. Analizler Bolumu \n");
-    printf("Seciminizi yapin (1/2/3/4/5/6/7): ");
+    printf("8. Istatistikler\n");
+    printf("Seciminizi yapin (1/2/3/4/5/6/7/8): ");
     scanf(" %c", &secim);
 
     switch (secim)
@@ -407,7 +453,28 @@ int main()
             donemselKazanc(siparisDosya);
             break;
         default:
-            printf("Geçersiz Seçim");
+            printf("Gecersiz Seçim");
+            break;
+        }
+    case '8':
+        printf("\033[2J\033[H");
+        printf("1) En Cok Tuketilen Yemek \n");
+        printf("2) En Kazancli Gun\n");
+        printf("3) En Cok Siparis Veren Kullanici\n");
+        scanf(" %c", &istatistikSecim);
+        switch (istatistikSecim)
+        {
+        case '1':
+            enCokTuketilenYemek(siparisDosya);
+            break;
+        case '2':
+            // En Kazancli Gun
+            break;
+        case '3':
+            // En Cok Siparis Veren Kullanici
+            break;
+        default:
+            printf("Gecersiz Secim");
             break;
         }
     default:
