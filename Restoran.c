@@ -24,6 +24,146 @@ struct Siparis
     int onay; // 1: onaylandı, 0: red edildi
 };
 
+void enCokSiparisVerenKullanici(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char kullanicilar[100][50];            // Maksimum 100 farklı kullanıcı varsayıyoruz
+    int kullaniciSiparisSayisi[100] = {0}; // Bu kullanıcıların sipariş sayılarını saklayacak dizi
+    int kullaniciSayisi = 0;               // Farklı kullanıcı sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        char *token = strtok(line, " "); // Satırı boşluk karakterlerine göre parçala
+        if (token != NULL)
+        {
+            sscanf(token, "%d", &siparis.id); // İlk parçayı sipariş numarası olarak al
+            token = strtok(NULL, " ");        // Bir sonraki parçaya geç
+            if (token != NULL)
+            {
+                strcpy(siparis.ad, token); // İkinci parçayı yemek adı olarak al
+                token = strtok(NULL, " "); // Bir sonraki parçaya geç
+                if (token != NULL)
+                {
+                    sscanf(token, "%f", &siparis.fiyat); // Üçüncü parçayı fiyat olarak al
+                    token = strtok(NULL, " ");           // Bir sonraki parçaya geç
+                    if (token != NULL)
+                    {
+                        strncpy(siparis.tarih, token, 10); // Dördüncü parçayı tarih olarak al
+                        siparis.tarih[10] = '\0';          // String sonunu işaretle
+                        token = strtok(NULL, " ");         // Bir sonraki parçaya geç
+                        if (token != NULL)
+                        {
+                            strcpy(siparis.bitisTarih, token); // Beşinci parçayı bitiş tarihi olarak al
+                            token = strtok(NULL, " ");         // Bir sonraki parçaya geç
+                            if (token != NULL)
+                            {
+                                strcpy(siparis.kullanici, token); // Altıncı parçayı kullanıcı adı olarak al
+                                token = strtok(NULL, " ");        // Diğer parçalara geç
+                                if (token != NULL)
+                                {
+                                    strcpy(siparis.masa, token); // Yedinci parçayı masa bilgisi olarak al
+                                    token = strtok(NULL, " ");   // Diğer parçalara geç
+                                    if (token != NULL)
+                                    {
+                                        sscanf(token, "%d", &siparis.onay); // Sekizinci parçayı onay durumu olarak al
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Kullanıcıyı kullanicilar dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < kullaniciSayisi; i++)
+        {
+            if (strcmp(kullanicilar[i], siparis.kullanici) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer kullanıcı bulunduysa, sipariş sayısını arttır
+            kullaniciSiparisSayisi[found]++;
+        }
+        else
+        {
+            // Eğer kullanıcı bulunmadıysa, yeni bir kullanıcı ekle
+            strcpy(kullanicilar[kullaniciSayisi], siparis.kullanici);
+            kullaniciSiparisSayisi[kullaniciSayisi] = 1;
+            kullaniciSayisi++;
+        }
+    }
+
+    // En çok sipariş veren kullanıcıyı bul
+    int maxIndex = 0;
+    for (int i = 1; i < kullaniciSayisi; i++)
+    {
+        if (kullaniciSiparisSayisi[i] > kullaniciSiparisSayisi[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Cok Siparis Veren Kullanici: %s, Siparis Sayisi: %d\n", kullanicilar[maxIndex], kullaniciSiparisSayisi[maxIndex]);
+}
+
+void enKazancliGun(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char gunler[100][20];         // Maksimum 100 farklı gün varsayıyoruz
+    float gunKazanc[100] = {0.0}; // Bu günlerin kazançlarını saklayacak dizi
+    int gunSayisi = 0;            // Farklı gün sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Günü gunler dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < gunSayisi; i++)
+        {
+            if (strcmp(gunler[i], siparis.tarih) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer gün bulunduysa, kazancını ekle
+            gunKazanc[found] += siparis.fiyat;
+        }
+        else
+        {
+            // Eğer gün bulunmadıysa, yeni bir gün ekle
+            strcpy(gunler[gunSayisi], siparis.tarih);
+            gunKazanc[gunSayisi] = siparis.fiyat;
+            gunSayisi++;
+        }
+    }
+
+    // En kazançlı günü bul
+    int maxIndex = 0;
+    for (int i = 1; i < gunSayisi; i++)
+    {
+        if (gunKazanc[i] > gunKazanc[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Kazancli Gun: %s, Kazanc: %.2f TL\n", gunler[maxIndex], gunKazanc[maxIndex]);
+}
+
 void enCokTuketilenYemek(FILE *siparisDosya)
 {
     struct Siparis siparis;
@@ -468,10 +608,10 @@ int main()
             enCokTuketilenYemek(siparisDosya);
             break;
         case '2':
-            // En Kazancli Gun
+            enKazancliGun(siparisDosya);
             break;
         case '3':
-            // En Cok Siparis Veren Kullanici
+            enCokSiparisVerenKullanici(siparisDosya);
             break;
         default:
             printf("Gecersiz Secim");
