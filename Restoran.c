@@ -525,7 +525,7 @@ void yemekSil(FILE *dosya)
 void anaMenu(FILE *dosya, FILE *siparisDosya)
 {
     char secim;
-
+    printf("\033[2J\033[H");
     printf("\n1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
