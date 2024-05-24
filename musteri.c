@@ -13,7 +13,7 @@ typedef struct
     int id;                // Sipariş ID'si
     char urun[MAX_STR];    // Ürün adı
     float fiyat;           // Ürün fiyatı
-    int miktar;            // Ürün miktarı
+    int hazirlamasure;            // Ürün hazirlamasureı
     char kullanici[MAX_STR]; // Kullanıcı adı
 } Siparis;
 
@@ -36,17 +36,17 @@ FILE* dosyaAc(const char *dosyaAdi, const char *mod) {
 
 
 
-int main(int argc, char const *argv[]) {
-    
+int main() {
+
     char kullanici[MAX_STR];
      printf("Kullanici isminizi girin: ");
      scanf("%s", kullanici);
 
     FILE *dosya = dosyaAc("yemeklistesi.txt", "r"); // Yemek listesi dosyasını aç
-    
-    
+
+
     Siparis siparisler[MAX_YEMEK];
-    
+
     int yemek_sayisi = yemekListesiniYazdirVeSiparisleriOku(dosya, siparisler, kullanici); 
     fclose(dosya); // Dosyayı kapat
 
@@ -61,37 +61,37 @@ int main(int argc, char const *argv[]) {
     kullaniciSiparisleriniGoster(dosya2, kullanici); 
     fclose(dosya2); 
 
-    
+
     return 0;
 }
 
 // Yemek listesini yazdıran ve siparişleri okuyan fonksiyon
 int yemekListesiniYazdirVeSiparisleriOku(FILE *dosya, Siparis siparisler[MAX_YEMEK], char kullanici[MAX_STR]) {
-    printf("ID   YEMEK  FIYAT       SURE\n");
+    printf("ID  YEMEK  FIYAT  SURE\n");
 
     char urun[MAX_STR];
     float fiyat;
-    int miktar;
+    int hazirlamasure;
     char mevcut[10];
     int yemek_sayisi = 0;
 
     // Dosyadan satır satır okuma işlemi
-    while (fscanf(dosya, "%s %f %d %s", urun, &fiyat, &miktar, mevcut) == 4 && yemek_sayisi < MAX_YEMEK) {
+    while (fscanf(dosya, "%s %f %d %s", urun, &fiyat, &hazirlamasure, mevcut) == 4 && yemek_sayisi < MAX_YEMEK) {
         // "Mevcut" alanı "True" ise kontrol et
         if (strcmp(mevcut, "True") == 0) {
             // Sipariş yapısını doldur
             siparisler[yemek_sayisi].id = yemek_sayisi + 1;
             strcpy(siparisler[yemek_sayisi].urun, urun); 
             siparisler[yemek_sayisi].fiyat = fiyat;
-            siparisler[yemek_sayisi].miktar = miktar;
+            siparisler[yemek_sayisi].hazirlamasure = hazirlamasure;
             strcpy(siparisler[yemek_sayisi].kullanici, kullanici);
 
             // Ekrana yazdır
-            printf("%2d %5s %10.2f %15d\n",
+            printf("%d %s %.2ftl %ddk\n",
                    siparisler[yemek_sayisi].id,
                    siparisler[yemek_sayisi].urun,
                    siparisler[yemek_sayisi].fiyat,
-                   siparisler[yemek_sayisi].miktar);
+                   siparisler[yemek_sayisi].hazirlamasure);
 
             yemek_sayisi++;
         }
@@ -124,14 +124,14 @@ void kullaniciSiparisleriniGoster(FILE *dosya, const char kullanici[MAX_STR]) {
     char sip_kullanici[MAX_STR];
     char urun[MAX_STR];
     float fiyat;
-    int miktar;
+    int hazirlamasure;
 
     // Dosyadan satır satır okuma işlemi
-    while (fscanf(dosya, "%d %49s %49s %f %d", &id, sip_kullanici, urun, &fiyat, &miktar) != EOF) {
+    while (fscanf(dosya, "%d %49s %49s %f %d", &id, sip_kullanici, urun, &fiyat, &hazirlamasure) != EOF) {
         // Kullanıcı adı kontrolü
         if (strcmp(kullanici, sip_kullanici) == 0) {
             // Ekrana yazdırma işlemi
-            printf("%d %s %s %.2f %d\n", id, sip_kullanici, urun, fiyat, miktar);
+            printf("%d %s %s %.2f %d\n", id, sip_kullanici, urun, fiyat, hazirlamasure);
         }
     }
 }
@@ -146,7 +146,7 @@ void siparisKaydet(FILE *dosya, Siparis secilen_siparis) {
             secilen_siparis.kullanici,
             secilen_siparis.urun,
             secilen_siparis.fiyat,
-            secilen_siparis.miktar);
+            secilen_siparis.hazirlamasure);
 
     printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n",
            secilen_siparis.id,
