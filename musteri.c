@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <string.h> // strcpy strcmp fonksiyonları için
+#include <stdlib.h> // exit(1) fonksiyonunu kullanmak için
 #include <time.h>
 
 // Maksimum yemek sayısı ve maksimum string uzunluğu sabitleri
@@ -21,20 +21,9 @@ int yemekListesiniYazdirVeSiparisleriOku(FILE *dosya, Siparis siparisler[MAX_YEM
 int kullaniciSecimYap(int yemek_sayisi);
 void kullaniciSiparisleriniGoster(FILE *dosya, const char kullanici[MAX_STR]);
 void siparisKaydet(FILE *dosya, Siparis secilen_siparis);
+ 
 
-
-
-
-FILE* dosyaAc(const char *dosyaAdi, const char *mod) {
-    FILE *dosya = fopen(dosyaAdi, mod);
-    if (dosya == NULL) {
-        perror("Dosya açma hatası");
-        exit(1); // programı kapatır
-    }
-    return dosya;
-}
-
-
+FILE* dosyaAc(const char *dosyaAdi, const char *mod);
 
 int main() {
 
@@ -42,7 +31,8 @@ int main() {
      printf("Kullanici isminizi girin: ");
      scanf("%s", kullanici);
 
-    FILE *dosya = dosyaAc("yemeklistesi.txt", "r"); // Yemek listesi dosyasını aç
+
+    FILE *dosya = dosyaAc("yemeklistesi.txt", "r"); // Yemek listesini okuma modunda açma
 
 
     Siparis siparisler[MAX_YEMEK];
@@ -52,12 +42,12 @@ int main() {
 
     int secim = kullaniciSecimYap(yemek_sayisi); 
 
-    FILE *dosya1 = dosyaAc("siparislerim.txt", "a"); // Sipariş dosyasını aç
+    FILE *dosya1 = dosyaAc("siparislerim.txt", "a"); // Sipariş dosyasını ekleme modunda açma
     Siparis secilen_siparis = siparisler[secim - 1]; // Seçilen siparişi al
     siparisKaydet(dosya1, secilen_siparis); 
     fclose(dosya1); 
 
-    FILE *dosya2 = dosyaAc("siparislerim.txt", "r"); 
+    FILE *dosya2 = dosyaAc("siparislerim.txt", "r"); // Sipariş dosyasını okuma modunda açma 
     kullaniciSiparisleriniGoster(dosya2, kullanici); 
     fclose(dosya2); 
 
@@ -140,7 +130,7 @@ void kullaniciSiparisleriniGoster(FILE *dosya, const char kullanici[MAX_STR]) {
 
 // Siparişi dosyaya kaydeden fonksiyon
 void siparisKaydet(FILE *dosya, Siparis secilen_siparis) {
-    srand(time(NULL)); // Rastgele sayı üreteci için tohum
+    srand(time(NULL)); // Rastgele sayı üretmek için
     fprintf(dosya, "%d\t%s\t%s\t%.2f\t%d\n",
             rand(), // Rastgele bir ID oluşturur
             secilen_siparis.kullanici,
@@ -151,4 +141,13 @@ void siparisKaydet(FILE *dosya, Siparis secilen_siparis) {
     printf("Siparisiniz kaydedildi: ID=%d, Urun=%s\n",
            secilen_siparis.id,
            secilen_siparis.urun);
+}
+
+FILE* dosyaAc(const char *dosyaAdi, const char *mod) {
+    FILE *dosya = fopen(dosyaAdi, mod);
+    if (dosya == NULL) {
+        perror("Dosya açma hatası");
+        exit(1); // programı kapatır
+    }
+    return dosya;
 }

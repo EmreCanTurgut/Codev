@@ -2,4 +2,4 @@ Tost 60.00 10 True
 Tavuk-Durum 80.00 15 True
 Et-Durum 160.00 15 False
 Sucuk 20.00 10 False
-
+ekmek 10.00 5 mevcut

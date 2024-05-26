@@ -24,233 +24,45 @@ struct Siparis
     int onay; // 1: onaylandı, 0: red edildi
 };
 
-void enCokSiparisVerenKullanici(FILE *siparisDosya)
+void enCokSiparisVerenKullanici(FILE *siparisDosya);
+void enKazancliGun(FILE *siparisDosya);
+void enCokTuketilenYemek(FILE *siparisDosya);
+void gunlukRapor(FILE *siparisDosya);
+void gunlukKazanc(FILE *siparisDosya);
+void aylikKazanc(FILE *siparisDosya);
+void donemselKazanc(FILE *siparisDosya);
+void gunlukRaporAl(char *tarih);
+int siparisOnaylanmisMi(FILE *mutfakDosya, int siparisNo);
+void siparisOnay(FILE *dosya);
+void yemekEkle(FILE *dosya);
+void yemekGuncelle(FILE *dosya);
+void anaMenu(FILE *dosya, FILE *siparisDosya);
+void yemekSil(FILE *dosya);
+
+int main()
 {
-    struct Siparis siparis;
-    char line[256];
-    char kullanicilar[100][50];            // Maksimum 100 farklı kullanıcı varsayıyoruz
-    int kullaniciSiparisSayisi[100] = {0}; // Bu kullanıcıların sipariş sayılarını saklayacak dizi
-    int kullaniciSayisi = 0;               // Farklı kullanıcı sayısını tutacak değişken
-
-    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    FILE *dosya = fopen("yemeklistesi.txt", "r+");
+    FILE *siparisDosya = fopen("siparisler.txt", "r+");
+    if (dosya == NULL || siparisDosya == NULL)
     {
-        char *token = strtok(line, " "); // Satırı boşluk karakterlerine göre parçala
-        if (token != NULL)
-        {
-            sscanf(token, "%d", &siparis.id); // İlk parçayı sipariş numarası olarak al
-            token = strtok(NULL, " ");        // Bir sonraki parçaya geç
-            if (token != NULL)
-            {
-                strcpy(siparis.ad, token); // İkinci parçayı yemek adı olarak al
-                token = strtok(NULL, " "); // Bir sonraki parçaya geç
-                if (token != NULL)
-                {
-                    sscanf(token, "%f", &siparis.fiyat); // Üçüncü parçayı fiyat olarak al
-                    token = strtok(NULL, " ");           // Bir sonraki parçaya geç
-                    if (token != NULL)
-                    {
-                        strncpy(siparis.tarih, token, 10); // Dördüncü parçayı tarih olarak al
-                        siparis.tarih[10] = '\0';          // String sonunu işaretle
-                        token = strtok(NULL, " ");         // Bir sonraki parçaya geç
-                        if (token != NULL)
-                        {
-                            strcpy(siparis.bitisTarih, token); // Beşinci parçayı bitiş tarihi olarak al
-                            token = strtok(NULL, " ");         // Bir sonraki parçaya geç
-                            if (token != NULL)
-                            {
-                                strcpy(siparis.kullanici, token); // Altıncı parçayı kullanıcı adı olarak al
-                                token = strtok(NULL, " ");        // Diğer parçalara geç
-                                if (token != NULL)
-                                {
-                                    strcpy(siparis.masa, token); // Yedinci parçayı masa bilgisi olarak al
-                                    token = strtok(NULL, " ");   // Diğer parçalara geç
-                                    if (token != NULL)
-                                    {
-                                        sscanf(token, "%d", &siparis.onay); // Sekizinci parçayı onay durumu olarak al
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Kullanıcıyı kullanicilar dizisinde arayalım
-        int found = -1;
-        for (int i = 0; i < kullaniciSayisi; i++)
-        {
-            if (strcmp(kullanicilar[i], siparis.kullanici) == 0)
-            {
-                found = i;
-                break;
-            }
-        }
-
-        if (found != -1)
-        {
-            // Eğer kullanıcı bulunduysa, sipariş sayısını arttır
-            kullaniciSiparisSayisi[found]++;
-        }
-        else
-        {
-            // Eğer kullanıcı bulunmadıysa, yeni bir kullanıcı ekle
-            strcpy(kullanicilar[kullaniciSayisi], siparis.kullanici);
-            kullaniciSiparisSayisi[kullaniciSayisi] = 1;
-            kullaniciSayisi++;
-        }
+        printf("Dosya acma hatasi!\n");
+        exit(EXIT_FAILURE);
     }
 
-    // En çok sipariş veren kullanıcıyı bul
-    int maxIndex = 0;
-    for (int i = 1; i < kullaniciSayisi; i++)
+    char devam;
+    do
     {
-        if (kullaniciSiparisSayisi[i] > kullaniciSiparisSayisi[maxIndex])
-        {
-            maxIndex = i;
-        }
-    }
+        anaMenu(dosya, siparisDosya);
+        printf("\nAna menuye donmek icin bir tusa basiniz (q cikis yapar): ");
+        scanf(" %c", &devam);
+    } while (devam != 'q' && devam != 'Q');
 
-    printf("En Cok Siparis Veren Kullanici: %s, Siparis Sayisi: %d\n", kullanicilar[maxIndex], kullaniciSiparisSayisi[maxIndex]);
+    fclose(dosya);
+    fclose(siparisDosya);
+    return 0;
 }
 
-void enKazancliGun(FILE *siparisDosya)
-{
-    struct Siparis siparis;
-    char line[256];
-    char gunler[100][20];         // Maksimum 100 farklı gün varsayıyoruz
-    float gunKazanc[100] = {0.0}; // Bu günlerin kazançlarını saklayacak dizi
-    int gunSayisi = 0;            // Farklı gün sayısını tutacak değişken
 
-    while (fgets(line, sizeof(line), siparisDosya) != NULL)
-    {
-        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
-
-        // Günü gunler dizisinde arayalım
-        int found = -1;
-        for (int i = 0; i < gunSayisi; i++)
-        {
-            if (strcmp(gunler[i], siparis.tarih) == 0)
-            {
-                found = i;
-                break;
-            }
-        }
-
-        if (found != -1)
-        {
-            // Eğer gün bulunduysa, kazancını ekle
-            gunKazanc[found] += siparis.fiyat;
-        }
-        else
-        {
-            // Eğer gün bulunmadıysa, yeni bir gün ekle
-            strcpy(gunler[gunSayisi], siparis.tarih);
-            gunKazanc[gunSayisi] = siparis.fiyat;
-            gunSayisi++;
-        }
-    }
-
-    // En kazançlı günü bul
-    int maxIndex = 0;
-    for (int i = 1; i < gunSayisi; i++)
-    {
-        if (gunKazanc[i] > gunKazanc[maxIndex])
-        {
-            maxIndex = i;
-        }
-    }
-
-    printf("En Kazancli Gun: %s, Kazanc: %.2f TL\n", gunler[maxIndex], gunKazanc[maxIndex]);
-}
-
-void enCokTuketilenYemek(FILE *siparisDosya)
-{
-    struct Siparis siparis;
-    char line[256];
-    char yemekAdlari[100][50];    // Maksimum 100 farklı yemek adı varsayıyoruz
-    int yemekAdetleri[100] = {0}; // Bu yemeklerin adetlerini saklayacak dizi
-    int yemekSayisi = 0;          // Farklı yemek sayısını tutacak değişken
-
-    while (fgets(line, sizeof(line), siparisDosya) != NULL)
-    {
-        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
-
-        // Yemek adını yemekAdlari dizisinde arayalım
-        int found = -1;
-        for (int i = 0; i < yemekSayisi; i++)
-        {
-            if (strcmp(yemekAdlari[i], siparis.ad) == 0)
-            {
-                found = i;
-                break;
-            }
-        }
-
-        if (found != -1)
-        {
-            // Eğer yemek adı bulunduysa, adetini bir artır
-            yemekAdetleri[found]++;
-        }
-        else
-        {
-            // Eğer yemek adı bulunmadıysa, yeni bir yemek ekle
-            strcpy(yemekAdlari[yemekSayisi], siparis.ad);
-            yemekAdetleri[yemekSayisi] = 1;
-            yemekSayisi++;
-        }
-    }
-
-    // En çok tüketilen yemeği bul
-    int maxIndex = 0;
-    for (int i = 1; i < yemekSayisi; i++)
-    {
-        if (yemekAdetleri[i] > yemekAdetleri[maxIndex])
-        {
-            maxIndex = i;
-        }
-    }
-
-    printf("En Cok Tuketilen Yemek: %s, Tuketim Miktari: %d\n", yemekAdlari[maxIndex], yemekAdetleri[maxIndex]);
-}
-
-void gunlukRapor(FILE *siparisDosya)
-{
-    FILE *raporDosya;
-    char tarih[11]; // "dd-mm-yyyy\0" için 11 karakterlik alan
-    char raporDosyaAdi[50];
-
-    printf("Rapor almak istediginiz tarihi girin (dd.mm.yyyy): ");
-    scanf("%s", tarih);
-
-    // Rapor dosyasının adını oluştur
-    sprintf(raporDosyaAdi, "gunluk_rapor_%s.txt", tarih);
-
-    // Rapor dosyasını oluştur veya aç
-    raporDosya = fopen(raporDosyaAdi, "w");
-    if (raporDosya == NULL)
-    {
-        perror("Rapor dosyasi olusturulamadi");
-        return;
-    }
-
-    struct Siparis siparis;
-    char line[256];
-    while (fgets(line, sizeof(line), siparisDosya) != NULL)
-    {
-        sscanf(line, "%d %s %f %10[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
-
-        if (strcmp(tarih, siparis.tarih) == 0)
-        {
-            fprintf(raporDosya, "%d %s %.2f %s %s %s %s %d\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay);
-        }
-    }
-
-    printf("Günlük rapor oluşturuldu: %s\n", raporDosyaAdi);
-
-    // Dosyaları kapat
-    fclose(raporDosya);
-}
 
 void gunlukKazanc(FILE *siparisDosya)
 {
@@ -264,11 +76,11 @@ void gunlukKazanc(FILE *siparisDosya)
     char line[256]; // Satırı okumak için kullanılacak karakter dizisi
     while (fgets(line, sizeof(line), siparisDosya) != NULL)
     {
-        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
+        // Satırdan bilgileri çekiyoruz
         sscanf(line, "%d %49s %f %19s %19s %49s %9s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
 
         // Siparişin tarih bilgisini kontrol et
-        if (strncmp(tarih, siparis.tarih, 10) == 0)
+        if (strncmp(tarih, siparis.tarih, 10) == 0) // 2 stringin ilk 10 karakterini kıyaslar daha sağlılı
         {
             // İlgili tarih bilgisini içeren siparişin fiyatını toplam kazanca ekle
             toplamKazanc += siparis.fiyat;
@@ -278,254 +90,10 @@ void gunlukKazanc(FILE *siparisDosya)
     printf("Gunluk Kazanc: %.2f TL\n", toplamKazanc);
 }
 
-void aylikKazanc(FILE *siparisDosya)
-{
-    char restoranYil[8]; // Ay için 2 karakter, yıl için 4 karakter
-    printf("Kazancini gormek istediginiz ayi girin (mm.yyyy formatinda): ");
-    scanf("%s", restoranYil); // Ay ve yıl olarak ayrılmış olarak oku
-
-    struct Siparis siparis;
-    float toplamKazanc = 0.0;
-    char buffer[256];
-
-    // Dosyanın başına git
-    fseek(siparisDosya, 0, SEEK_SET);
-
-    while (fgets(buffer, sizeof(buffer), siparisDosya))
-    {
-        // Satırı ayrıştır
-        int fieldCount = sscanf(buffer, "%d %49s %f %10s %19s %49s %9s",
-                                &siparis.id, siparis.ad, &siparis.fiyat,
-                                siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
-        char ayYil[8];
-        strncpy(ayYil, siparis.tarih + 3, 7);
-        ayYil[7] = '\0';
-
-        if (strcmp(ayYil, restoranYil) == 0)
-        {
-            printf("%s\n", ayYil); // Sadece test amaçlı, belirtilen ay ve yılın doğru şekilde alındığını gösterir
-            toplamKazanc += siparis.fiyat;
-        }
-    }
-
-    printf("Belirtilen aydaki toplam kazanc: %.2f TL\n", toplamKazanc);
-}
-
-void donemselKazanc(FILE *siparisDosya)
-{
-    char baslangicTarih[11]; // "dd.mm.yyyy\0" için 11 karakterlik alan
-    char bitisTarih[11];     // "dd.mm.yyyy\0" için 11 karakterlik alan
-
-    printf("Baslangic tarihini girin (dd.mm.yyyy): ");
-    scanf("%s", baslangicTarih);
-    printf("Bitis tarihini girin (dd.mm.yyyy): ");
-    scanf("%s", bitisTarih);
-
-    struct Siparis siparis;
-    float toplamKazanc = 0.0;
-    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
-
-    // Siparişler dosyasından belirtilen tarih aralığındaki siparişleri oku ve kazancı hesapla
-    fseek(siparisDosya, 0, SEEK_SET);
-    while (fgets(line, sizeof(line), siparisDosya) != NULL)
-    {
-        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
-        sscanf(line, "%d %49s %f %19s %19s %49s %9s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
-
-        // Siparişin tarih bilgisini kontrol et
-        if (strcmp(siparis.tarih, baslangicTarih) >= 0 && strcmp(siparis.tarih, bitisTarih) <= 0)
-        {
-            // İlgili tarih aralığındaki siparişin fiyatını toplam kazanca ekle
-            toplamKazanc += siparis.fiyat;
-        }
-    }
-
-    printf("Belirtilen donemdeki toplam kazanc: %.2f TL\n", toplamKazanc);
-}
-
-void gunlukRaporAl(char *tarih)
-{
-    char dosyaAdi[50];
-    sprintf(dosyaAdi, "gunluk_rapor_%s.txt", tarih); // Tarihle ilişkilendirilmiş dosya adı oluştur
-
-    FILE *dosya = fopen(dosyaAdi, "r");
-    if (dosya == NULL)
-    {
-        printf("Gunluk rapor bulunamadi!\n");
-        return;
-    }
-
-    struct Siparis siparis;
-    printf("Tarih: %s\n", tarih);
-    printf("Siparisler:\n");
-    while (fscanf(dosya, "%d %s %f %s %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay) != EOF)
-    {
-        printf("ID: %d, Ad: %s, Fiyat: %.2f, Tarih: %s, Bitis Tarihi: %s, Kullanici: %s, Masa: %s, Onay: %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay ? "Onaylandi" : "Red Edildi");
-    }
-
-    fclose(dosya);
-}
-
-int siparisOnaylanmisMi(FILE *mutfakDosya, int siparisNo)
-{
-    struct Siparis siparis;
-    fseek(mutfakDosya, 0, SEEK_SET); // Dosyanın başına git
-
-    while (fscanf(mutfakDosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
-    {
-        if (siparis.id == siparisNo)
-        {
-            return 1; // Sipariş zaten onaylanmış
-        }
-    }
-    return 0; // Sipariş onaylanmamış
-}
-
-void siparisOnay(FILE *dosya)
-{
-    FILE *mutfakDosya = fopen("mutfak.txt", "a+"); // "a+" modunu kullanarak dosyayı hem okuyabilir hem yazabiliriz
-    if (mutfakDosya == NULL)
-    {
-        perror("mutfak.txt dosyası açılamadı");
-        return;
-    }
-
-    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
-    struct Siparis siparis;
-    printf("Onaylanacak siparis numarasini giriniz:\n");
-    int siparisNo;
-    scanf("%d", &siparisNo);
-
-    if (siparisOnaylanmisMi(mutfakDosya, siparisNo))
-    {
-        printf("Bu siparis zaten onaylanmis.\n");
-        fclose(mutfakDosya);
-        return;
-    }
-
-    int siparisBulundu = 0; // Sipariş bulunduğunda döngüden çıkmak için
-
-    while (fscanf(dosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
-    {
-        if (siparis.id == siparisNo)
-        {
-            siparis.onay = 1;
-            printf("Siparis onaylandi! Siparis No: %d\n", siparisNo);
-            fseek(mutfakDosya, 0, SEEK_END); // Dosyanın sonuna git
-            fprintf(mutfakDosya, "%d %s %.6f %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
-            siparisBulundu = 1;
-            break; // Sipariş bulundu ve onaylandı, döngüden çık
-        }
-    }
-
-    if (!siparisBulundu)
-    {
-        printf("Siparis bulunamadi! Siparis No: %d\n", siparisNo);
-    }
-
-    fclose(mutfakDosya);
-}
-
-void yemekEkle(FILE *dosya)
-{
-    fseek(dosya, 0, SEEK_END); // Dosyanın sonuna git
-    struct Yemek yeniYemek;
-    printf("Yeni yemek bilgilerini girin:\n");
-    printf("Ad: ");
-    scanf("%s", yeniYemek.ad);
-    printf("Fiyat: ");
-    scanf("%f", &yeniYemek.fiyat);
-    printf("Hazirlanma suresi (dakika): ");
-    scanf("%d", &yeniYemek.hazirlanma_suresi);
-    printf("Durum (Hazir/Mevcut/Yok): ");
-    scanf("%s", yeniYemek.durum);
-
-    // Dosyaya yazma
-    fprintf(dosya, "%s %.2f %d %s\n", yeniYemek.ad, yeniYemek.fiyat, yeniYemek.hazirlanma_suresi, yeniYemek.durum);
-    printf("Yeni yemek eklendi!\n");
-}
-
-void yemekGuncelle(FILE *dosya)
-{
-    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
-    char hedefAd[50];
-    printf("Guncellenecek yemegin adini girin: ");
-    scanf("%s", hedefAd);
-
-    // Geçici dosya oluştur
-    FILE *geciciDosya = fopen("gecici.txt", "w");
-    if (geciciDosya == NULL)
-    {
-        perror("Gecici dosya olusturulamadi");
-        return;
-    }
-
-    // Yemekleri geçici dosyaya kopyala, hedef yemeği güncelle
-    struct Yemek yemek;
-    while (fscanf(dosya, "%s %f %d %s", yemek.ad, &yemek.fiyat, &yemek.hazirlanma_suresi, yemek.durum) != EOF)
-    {
-        if (strcmp(yemek.ad, hedefAd) == 0)
-        {
-            printf("Yeni bilgileri girin:\n");
-            printf("Fiyat: ");
-            scanf("%f", &yemek.fiyat);
-            printf("Hazirlanma suresi (dakika): ");
-            scanf("%d", &yemek.hazirlanma_suresi);
-            printf("Durum (Hazir/Mevcut/Yok): ");
-            scanf("%s", yemek.durum);
-        }
-        fprintf(geciciDosya, "%s %.2f %d %s\n", yemek.ad, yemek.fiyat, yemek.hazirlanma_suresi, yemek.durum);
-    }
-
-    fclose(dosya);
-    fclose(geciciDosya);
-
-    // Geçici dosyayı asıl dosya ile değiştir
-    remove("yemeklistesi.txt");
-    rename("gecici.txt", "yemeklistesi.txt");
-
-    printf("Yemek guncellendi!\n");
-}
-
-void yemekSil(FILE *dosya)
-{
-    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
-    char hedefAd[50];
-    printf("Silinecek yemegin adini girin: ");
-    scanf("%s", hedefAd);
-
-    // Geçici dosya oluştur
-    FILE *geciciDosya = fopen("gecici.txt", "w");
-    if (geciciDosya == NULL)
-    {
-        perror("Gecici dosya olusturulamadi");
-        return;
-    }
-
-    // Yemekleri geçici dosyaya kopyala, hedef yemeği sil
-    struct Yemek yemek;
-    while (fscanf(dosya, "%s %f %d %s", yemek.ad, &yemek.fiyat, &yemek.hazirlanma_suresi, yemek.durum) != EOF)
-    {
-        if (strcmp(yemek.ad, hedefAd) != 0)
-        {
-            fprintf(geciciDosya, "%s %.2f %d %s\n", yemek.ad, yemek.fiyat, yemek.hazirlanma_suresi, yemek.durum);
-        }
-    }
-
-    fclose(dosya);
-    fclose(geciciDosya);
-
-    // Geçici dosyayı asıl dosya ile değiştir
-    remove("yemeklistesi.txt");
-    rename("gecici.txt", "yemeklistesi.txt");
-
-    printf("Yemek silindi!\n");
-}
-
 void anaMenu(FILE *dosya, FILE *siparisDosya)
 {
     char secim;
-    printf("\033[2J\033[H");
+    printf("\033[2J\033[H"); // anamenüye dönüldüğünde eski verileri siler 
     printf("\n1. Yemek Ekle\n");
     printf("2. Yemek Guncelle\n");
     printf("3. Yemek Sil\n");
@@ -620,25 +188,474 @@ void anaMenu(FILE *dosya, FILE *siparisDosya)
     }
 }
 
-int main()
+void yemekSil(FILE *dosya)
 {
-    FILE *dosya = fopen("yemeklistesi.txt", "r+");
-    FILE *siparisDosya = fopen("siparisler.txt", "r+");
-    if (dosya == NULL || siparisDosya == NULL)
+    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
+    char hedefAd[50];
+    printf("Silinecek yemegin adini girin: ");
+    scanf("%s", hedefAd);
+
+    // Geçici dosya oluştur
+    FILE *geciciDosya = fopen("gecici.txt", "w");
+    if (geciciDosya == NULL)
     {
-        printf("Dosya acma hatasi!\n");
-        exit(EXIT_FAILURE);
+        perror("Gecici dosya olusturulamadi");
+        return;
     }
 
-    char devam;
-    do
+    // Yemekleri geçici dosyaya kopyala, hedef yemeği sil
+    struct Yemek yemek;
+    while (fscanf(dosya, "%s %f %d %s", yemek.ad, &yemek.fiyat, &yemek.hazirlanma_suresi, yemek.durum) != EOF)
     {
-        anaMenu(dosya, siparisDosya);
-        printf("\nAna menuye donmek icin bir tusa basiniz (q cikis yapar): ");
-        scanf(" %c", &devam);
-    } while (devam != 'q' && devam != 'Q');
+        if (strcmp(yemek.ad, hedefAd) != 0) // her satırdaki yemeği hedef yemek mi diye kıyaslar değilse gecici.txt ye yazdırır hedef yemeği yazdırmaz bu şekilde istenilen yemeği silmiş oluruz
+        {
+            fprintf(geciciDosya, "%s %.2f %d %s\n", yemek.ad, yemek.fiyat, yemek.hazirlanma_suresi, yemek.durum);
+        }
+    }
 
     fclose(dosya);
-    fclose(siparisDosya);
-    return 0;
+    fclose(geciciDosya);
+
+    // Geçici dosyayı asıl dosya ile değiştir
+    remove("yemeklistesi.txt");
+    rename("gecici.txt", "yemeklistesi.txt");
+
+    printf("Yemek silindi!\n");
+}
+
+void yemekGuncelle(FILE *dosya)
+{
+    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
+    char hedefAd[50];
+    printf("Guncellenecek yemegin adini girin: ");
+    scanf("%s", hedefAd);
+
+    // Geçici dosya oluştur
+    FILE *geciciDosya = fopen("gecici.txt", "w"); // geçici dosya oluşturmak daha güvenli şekilde güncelleme yapmayı sağlar
+    if (geciciDosya == NULL)
+    {
+        perror("Gecici dosya olusturulamadi");
+        return;
+    }
+
+    // Yemekleri geçici dosyaya kopyala, hedef yemeği güncelle
+    struct Yemek yemek;
+    while (fscanf(dosya, "%s %f %d %s", yemek.ad, &yemek.fiyat, &yemek.hazirlanma_suresi, yemek.durum) != EOF)
+    {
+        if (strcmp(yemek.ad, hedefAd) == 0)
+        {
+            printf("Yeni bilgileri girin:\n");
+            printf("Fiyat: ");
+            scanf("%f", &yemek.fiyat);
+            printf("Hazirlanma suresi (dakika): ");
+            scanf("%d", &yemek.hazirlanma_suresi);
+            printf("Durum (True/False): ");
+            scanf("%s", yemek.durum);
+        }
+        fprintf(geciciDosya, "%s %.2f %d %s\n", yemek.ad, yemek.fiyat, yemek.hazirlanma_suresi, yemek.durum);
+    }
+
+    fclose(dosya);
+    fclose(geciciDosya);
+
+    // Geçici dosyayı asıl dosya ile değiştir
+    remove("yemeklistesi.txt");
+    rename("gecici.txt", "yemeklistesi.txt");
+
+    printf("Yemek guncellendi!\n");
+}
+
+void yemekEkle(FILE *dosya)
+{
+    fseek(dosya, 0, SEEK_END); // Dosyanın sonuna gitme
+    struct Yemek yeniYemek; // yeni yemek isimli bi değişken oluşturuyoruz type olarak struct yemek veriyoruz
+    printf("Yeni yemek bilgilerini girin:\n");
+    printf("Ad: ");
+    scanf("%s", yeniYemek.ad);
+    printf("Fiyat: ");
+    scanf("%f", &yeniYemek.fiyat);
+    printf("Hazirlanma suresi (dakika): ");
+    scanf("%d", &yeniYemek.hazirlanma_suresi);
+    printf("Durum (True/False): ");
+    scanf("%s", yeniYemek.durum);
+
+    // yeniyemeği dosyaya yazma
+    fprintf(dosya, "%s %.2f %d %s\n", yeniYemek.ad, yeniYemek.fiyat, yeniYemek.hazirlanma_suresi, yeniYemek.durum);
+    printf("Yeni yemek eklendi!\n");
+}
+
+void siparisOnay(FILE *dosya)
+{
+    FILE *mutfakDosya = fopen("mutfak.txt", "a+"); // "a+" modunu kullanarak dosyayı hem okuyabilir hem yazabiliriz
+    if (mutfakDosya == NULL)
+    {
+        perror("mutfak.txt dosyası açılamadı");
+        return;
+    }
+
+    fseek(dosya, 0, SEEK_SET); // Dosyanın başına git
+    struct Siparis siparis;
+    printf("Onaylanacak siparis numarasini giriniz:\n");
+    int siparisNo;
+    scanf("%d", &siparisNo);
+
+    if (siparisOnaylanmisMi(mutfakDosya, siparisNo))
+    {
+        printf("Bu siparis zaten onaylanmis.\n");
+        fclose(mutfakDosya);
+        return;
+    }
+
+    int siparisBulundu = 0; // Sipariş bulunduğunda döngüden çıkmak için
+
+    while (fscanf(dosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    {
+        if (siparis.id == siparisNo)
+        {
+            siparis.onay = 1;
+            printf("Siparis onaylandi! Siparis No: %d\n", siparisNo);
+            fseek(mutfakDosya, 0, SEEK_END); // Dosyanın sonuna git
+            fprintf(mutfakDosya, "%d %s %.6f %s %s %s %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+            siparisBulundu = 1;
+            break; // Sipariş bulundu ve onaylandı, döngüden çık
+        }
+    }
+
+    if (!siparisBulundu)
+    {
+        printf("Siparis bulunamadi! Siparis No: %d\n", siparisNo);
+    }
+
+    fclose(mutfakDosya);
+}
+
+int siparisOnaylanmisMi(FILE *mutfakDosya, int siparisNo)
+{
+    struct Siparis siparis;
+    fseek(mutfakDosya, 0, SEEK_SET); // Dosyanın başına git
+
+    while (fscanf(mutfakDosya, "%d %49s %f %19s %19s %49s %9s", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa) != EOF)
+    {
+        if (siparis.id == siparisNo)
+        {
+            return 1; // Sipariş zaten onaylanmış
+        }
+    }
+    return 0; // Sipariş onaylanmamış
+}
+
+void gunlukRaporAl(char *tarih)
+{
+    char dosyaAdi[50];
+    sprintf(dosyaAdi, "gunluk_rapor_%s.txt", tarih); // Tarihle ilişkilendirilmiş dosya adı oluştur
+
+    FILE *dosya = fopen(dosyaAdi, "r");
+    if (dosya == NULL)
+    {
+        printf("Gunluk rapor bulunamadi!\n");
+        return;
+    }
+
+    struct Siparis siparis;
+    printf("Tarih: %s\n", tarih);
+    printf("Siparisler:\n");
+    while (fscanf(dosya, "%d %s %f %s %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay) != EOF)
+    {
+        printf("ID: %d, Ad: %s, Fiyat: %.2f, Tarih: %s, Bitis Tarihi: %s, Kullanici: %s, Masa: %s, Onay: %s\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay ? "Onaylandi" : "Red Edildi");
+    }
+
+    fclose(dosya);
+}
+
+void donemselKazanc(FILE *siparisDosya)
+{
+    char baslangicTarih[11]; // "dd.mm.yyyy\0" için 11 karakterlik alan
+    char bitisTarih[11];     // "dd.mm.yyyy\0" için 11 karakterlik alan
+
+    printf("Baslangic tarihini girin (dd.mm.yyyy): ");
+    scanf("%s", baslangicTarih);
+    printf("Bitis tarihini girin (dd.mm.yyyy): ");
+    scanf("%s", bitisTarih);
+
+    struct Siparis siparis;
+    float toplamKazanc = 0.0;
+    char line[256]; // Satırı okumak için kullanılacak karakter dizisi
+
+    // Siparişler dosyasından belirtilen tarih aralığındaki siparişleri oku ve kazancı hesapla
+    fseek(siparisDosya, 0, SEEK_SET);
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        // Satırdan gerekli bilgileri almak için sscanf kullanabiliriz
+        sscanf(line, "%d %49s %f %19s %19s %49s %9s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Siparişin tarih bilgisini kontrol et
+        if (strcmp(siparis.tarih, baslangicTarih) >= 0 && strcmp(siparis.tarih, bitisTarih) <= 0)
+        {
+            // İlgili tarih aralığındaki siparişin fiyatını toplam kazanca ekle
+            toplamKazanc += siparis.fiyat;
+        }
+    }
+
+    printf("Belirtilen donemdeki toplam kazanc: %.2f TL\n", toplamKazanc);
+}
+
+void aylikKazanc(FILE *siparisDosya)
+{
+    char restoranYil[8]; // Ay için 2 karakter, yıl için 4 karakter
+    printf("Kazancini gormek istediginiz ayi girin (mm.yyyy formatinda): ");
+    scanf("%s", restoranYil); // Ay ve yıl olarak ayrılmış olarak oku
+
+    struct Siparis siparis;
+    float toplamKazanc = 0.0;
+    char buffer[256];
+
+    // Dosyanın başına git
+    fseek(siparisDosya, 0, SEEK_SET);
+
+    while (fgets(buffer, sizeof(buffer), siparisDosya))
+    {
+        // Satırı ayrıştır
+        int fieldCount = sscanf(buffer, "%d %49s %f %10s %19s %49s %9s",
+                                &siparis.id, siparis.ad, &siparis.fiyat,
+                                siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa);
+        char ayYil[8];
+        strncpy(ayYil, siparis.tarih + 3, 7);
+        ayYil[7] = '\0';
+
+        if (strcmp(ayYil, restoranYil) == 0)
+        {
+            printf("%s\n", ayYil); // Sadece test amaçlı, belirtilen ay ve yılın doğru şekilde alındığını gösterir
+            toplamKazanc += siparis.fiyat;
+        }
+    }
+
+    printf("Belirtilen aydaki toplam kazanc: %.2f TL\n", toplamKazanc);
+}
+
+void gunlukRapor(FILE *siparisDosya)
+{
+    FILE *raporDosya;
+    char tarih[11]; // "dd-mm-yyyy\0" için 11 karakterlik alan
+    char raporDosyaAdi[50];
+
+    printf("Rapor almak istediginiz tarihi girin (dd.mm.yyyy): ");
+    scanf("%s", tarih);
+
+    // Rapor dosyasının adını oluştur
+    sprintf(raporDosyaAdi, "gunluk_rapor_%s.txt", tarih);
+
+    // Rapor dosyasını oluştur veya aç
+    raporDosya = fopen(raporDosyaAdi, "w");
+    if (raporDosya == NULL)
+    {
+        perror("Rapor dosyasi olusturulamadi");
+        return;
+    }
+
+    struct Siparis siparis;
+    char line[256];
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        sscanf(line, "%d %s %f %10[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        if (strcmp(tarih, siparis.tarih) == 0)
+        {
+            fprintf(raporDosya, "%d %s %.2f %s %s %s %s %d\n", siparis.id, siparis.ad, siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, siparis.onay);
+        }
+    }
+
+    printf("Günlük rapor oluşturuldu: %s\n", raporDosyaAdi);
+
+    // Dosyaları kapat
+    fclose(raporDosya);
+}
+
+void enCokTuketilenYemek(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char yemekAdlari[100][50];    // Maksimum 100 farklı yemek adı varsayıyoruz
+    int yemekAdetleri[100] = {0}; // Bu yemeklerin adetlerini saklayacak dizi
+    int yemekSayisi = 0;          // Farklı yemek sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Yemek adını yemekAdlari dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < yemekSayisi; i++)
+        {
+            if (strcmp(yemekAdlari[i], siparis.ad) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer yemek adı bulunduysa, adetini bir artır
+            yemekAdetleri[found]++;
+        }
+        else
+        {
+            // Eğer yemek adı bulunmadıysa, yeni bir yemek ekle
+            strcpy(yemekAdlari[yemekSayisi], siparis.ad);
+            yemekAdetleri[yemekSayisi] = 1;
+            yemekSayisi++;
+        }
+    }
+
+    // En çok tüketilen yemeği bul
+    int maxIndex = 0;
+    for (int i = 1; i < yemekSayisi; i++)
+    {
+        if (yemekAdetleri[i] > yemekAdetleri[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Cok Tuketilen Yemek: %s, Tuketim Miktari: %d\n", yemekAdlari[maxIndex], yemekAdetleri[maxIndex]);
+}
+
+void enKazancliGun(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char gunler[100][20];         // Maksimum 100 farklı gün varsayıyoruz
+    float gunKazanc[100] = {0.0}; // Bu günlerin kazançlarını saklayacak dizi
+    int gunSayisi = 0;            // Farklı gün sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        sscanf(line, "%d %s %f %19[^-] %s %s %s %d", &siparis.id, siparis.ad, &siparis.fiyat, siparis.tarih, siparis.bitisTarih, siparis.kullanici, siparis.masa, &siparis.onay);
+
+        // Günü gunler dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < gunSayisi; i++)
+        {
+            if (strcmp(gunler[i], siparis.tarih) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer gün bulunduysa, kazancını ekle
+            gunKazanc[found] += siparis.fiyat;
+        }
+        else
+        {
+            // Eğer gün bulunmadıysa, yeni bir gün ekle
+            strcpy(gunler[gunSayisi], siparis.tarih);
+            gunKazanc[gunSayisi] = siparis.fiyat;
+            gunSayisi++;
+        }
+    }
+
+    // En kazançlı günü bul
+    int maxIndex = 0;
+    for (int i = 1; i < gunSayisi; i++)
+    {
+        if (gunKazanc[i] > gunKazanc[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Kazancli Gun: %s, Kazanc: %.2f TL\n", gunler[maxIndex], gunKazanc[maxIndex]);
+}
+
+void enCokSiparisVerenKullanici(FILE *siparisDosya)
+{
+    struct Siparis siparis;
+    char line[256];
+    char kullanicilar[100][50];            // Maksimum 100 farklı kullanıcı varsayıyoruz
+    int kullaniciSiparisSayisi[100] = {0}; // Bu kullanıcıların sipariş sayılarını saklayacak dizi
+    int kullaniciSayisi = 0;               // Farklı kullanıcı sayısını tutacak değişken
+
+    while (fgets(line, sizeof(line), siparisDosya) != NULL)
+    {
+        char *token = strtok(line, " "); // Satırı boşluk karakterlerine göre parçala
+        if (token != NULL)
+        {
+            sscanf(token, "%d", &siparis.id); // İlk parçayı sipariş numarası olarak al
+            token = strtok(NULL, " ");        // Bir sonraki parçaya geç
+            if (token != NULL)
+            {
+                strcpy(siparis.ad, token); // İkinci parçayı yemek adı olarak al
+                token = strtok(NULL, " "); // Bir sonraki parçaya geç
+                if (token != NULL)
+                {
+                    sscanf(token, "%f", &siparis.fiyat); // Üçüncü parçayı fiyat olarak al
+                    token = strtok(NULL, " ");           // Bir sonraki parçaya geç
+                    if (token != NULL)
+                    {
+                        strncpy(siparis.tarih, token, 10); // Dördüncü parçayı tarih olarak al
+                        siparis.tarih[10] = '\0';          // String sonunu işaretle
+                        token = strtok(NULL, " ");         // Bir sonraki parçaya geç
+                        if (token != NULL)
+                        {
+                            strcpy(siparis.bitisTarih, token); // Beşinci parçayı bitiş tarihi olarak al
+                            token = strtok(NULL, " ");         // Bir sonraki parçaya geç
+                            if (token != NULL)
+                            {
+                                strcpy(siparis.kullanici, token); // Altıncı parçayı kullanıcı adı olarak al
+                                token = strtok(NULL, " ");        // Diğer parçalara geç
+                                if (token != NULL)
+                                {
+                                    strcpy(siparis.masa, token); // Yedinci parçayı masa bilgisi olarak al
+                                    token = strtok(NULL, " ");   // Diğer parçalara geç
+                                    if (token != NULL)
+                                    {
+                                        sscanf(token, "%d", &siparis.onay); // Sekizinci parçayı onay durumu olarak al
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Kullanıcıyı kullanicilar dizisinde arayalım
+        int found = -1;
+        for (int i = 0; i < kullaniciSayisi; i++)
+        {
+            if (strcmp(kullanicilar[i], siparis.kullanici) == 0)
+            {
+                found = i;
+                break;
+            }
+        }
+
+        if (found != -1)
+        {
+            // Eğer kullanıcı bulunduysa, sipariş sayısını arttır
+            kullaniciSiparisSayisi[found]++;
+        }
+        else
+        {
+            // Eğer kullanıcı bulunmadıysa, yeni bir kullanıcı ekle
+            strcpy(kullanicilar[kullaniciSayisi], siparis.kullanici);
+            kullaniciSiparisSayisi[kullaniciSayisi] = 1;
+            kullaniciSayisi++;
+        }
+    }
+
+    // En çok sipariş veren kullanıcıyı bul
+    int maxIndex = 0;
+    for (int i = 1; i < kullaniciSayisi; i++)
+    {
+        if (kullaniciSiparisSayisi[i] > kullaniciSiparisSayisi[maxIndex])
+        {
+            maxIndex = i;
+        }
+    }
+
+    printf("En Cok Siparis Veren Kullanici: %s, Siparis Sayisi: %d\n", kullanicilar[maxIndex], kullaniciSiparisSayisi[maxIndex]);
 }
